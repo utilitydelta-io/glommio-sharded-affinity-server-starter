@@ -39,10 +39,10 @@ The Fibonacci example is just for demo purposes. In practice you'd probably use 
 
 ## Running It
 
-You'll need Rust 1.70+ and a Linux box (Glommio requirement).
+You'll need git, Rust 1.70+ and a Linux box (Glommio requirement).
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/utilitydelta-io/glommio-sharded-affinity-server-starter
 cd glommio-sharded-affinity-server-starter
 cargo run -p server --release
 ```
@@ -66,27 +66,23 @@ cargo run -p client --release
 
 ## Performance
 
-I ran both server and client on my Dell Inspiron 13 5378. It has 4 cores (intel i7) 8Gb RAM and 256Gb SSD.
+RaspberryPi 5 - both client + server running locally:
 
-Stats: 1601185 total requests | Overall: 53343.9 RPS | Last 2s: 46671.3 RPS | Avg latency: 0.9ms
-
-=== FINAL BENCHMARK RESULTS ===
-Total time: 30.02s
-Total requests: 1601185
-Requests per second: 53343.5
-Average response time: 0.94ms
-
-Not too bad for a 2017 era laptop! I also have a RaspberryPi 5:
-
-Stats: 2096183 total requests | Overall: 69840.4 RPS | Last 2s: 69091.0 RPS | Avg latency: 0.7ms
-
-=== FINAL BENCHMARK RESULTS ===
 Total time: 30.01s
 Total requests: 2096183
 Requests per second: 69840.0
 Average response time: 0.71ms
 
 70k requests per second on a $140 AUD RaspberryPi 5!
+
+That's all on localhost... On LAN (Cat6e):
+
+Total time: 30.01s
+Total requests: 1983762
+Requests per second: 66099.8
+Average response time: 0.76ms
+
+So LAN has roughly a 5% performance penalty in both throughput and latency.
 
 ## How It Works
 
@@ -97,7 +93,7 @@ The interesting bit is the connection migration. When a request comes in on the 
 3. Use `std::mem::forget()` to transfer ownership
 4. The target shard reconstructs the TCP stream and continues processing
 
-This lets clients maintain persistent connections while still getting proper request routing. The mesh channel setup ensures any shard can talk to any other shard without blocking.
+This lets clients maintain persistent connections while still getting proper request routing. The mesh channel setup ensures any shard can talk to any other shard without any locking primitives.
 
 ## Implementation Notes
 
@@ -117,8 +113,8 @@ The code is structured to be readable rather than maximally optimized. There's d
 
 ## Contributing
 
-This is mostly a proof of concept, but if you spot bugs or have ideas for improvements, feel free to open an issue. Could definitely use some proper benchmarks and maybe support for different routing strategies.
+This is mostly a proof of concept, but if you spot bugs or have ideas for improvements, feel free to open an issue. Could definitely use some proper benchmarks.
 
 ## License
 
-MIT License. Use it however you want.
+MIT License.
