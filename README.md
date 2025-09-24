@@ -76,7 +76,17 @@ Total requests: 1601185
 Requests per second: 53343.5
 Average response time: 0.94ms
 
-Not too bad for a 2017 era laptop!
+Not too bad for a 2017 era laptop! I also have a RaspberryPi 5:
+
+Stats: 2096183 total requests | Overall: 69840.4 RPS | Last 2s: 69091.0 RPS | Avg latency: 0.7ms
+
+=== FINAL BENCHMARK RESULTS ===
+Total time: 30.01s
+Total requests: 2096183
+Requests per second: 69840.0
+Average response time: 0.71ms
+
+70k requests per second on a $140 AUD RaspberryPi 5!
 
 ## How It Works
 
