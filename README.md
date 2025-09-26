@@ -69,11 +69,11 @@ cargo run -p client --release
 RaspberryPi 5 - both client + server running locally:
 
 Total time: 30.01s
-Total requests: 2096183
-Requests per second: 69840.0
-Average response time: 0.71ms
+Total requests: 4650396
+Requests per second: 154971.0
+Average response time: 0.32ms
 
-70k requests per second on a $140 AUD RaspberryPi 5!
+155k requests per second on a $140 AUD RaspberryPi 5!
 
 That's all on localhost... On LAN (Cat6e):
 
@@ -82,7 +82,7 @@ Total requests: 1983762
 Requests per second: 66099.8
 Average response time: 0.76ms
 
-So LAN has roughly a 5% performance penalty in both throughput and latency.
+Half the speed due to the network hop, but still 66k requests per second.
 
 ## How It Works
 
