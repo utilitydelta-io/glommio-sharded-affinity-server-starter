@@ -2,6 +2,7 @@
 members = [
     "server",
     "client",
+    "glommio",
 ]
 
 resolver = "2"

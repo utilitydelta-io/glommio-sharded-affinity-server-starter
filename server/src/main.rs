@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{cell::RefCell, num::NonZeroUsize, os::fd::{AsRawFd, FromRawFd}, rc::Rc, vec};
+use std::{cell::RefCell, num::NonZeroUsize, os::fd::{IntoRawFd, FromRawFd}, rc::Rc, vec};
 
 use glommio::{channels::channel_mesh::{Full, MeshBuilder, Senders}, enclose, net::TcpListener, spawn_local, CpuSet, LocalExecutorPoolBuilder, PoolPlacement};
 use futures_lite::AsyncReadExt;
@@ -157,7 +157,7 @@ async fn process_tcp_stream(
     fib_cache: Rc<RefCell<LruCache<u64, u64>>>) {
     // It's critical to spawn local here as this allows accepting of new connections
     // It also allows processing messages sent from other shards 
-    // Both of these can happen with spawn local while still listening to an open TCP connection
+    // Both of these can happen with spawn local while still listening to an open TCP connection    
     spawn_local(async move {
         loop {
             let number_input = match read_from_tcp_stream(shard_id, &mut tcp_stream).await {
@@ -172,18 +172,20 @@ async fn process_tcp_stream(
             if idx != shard_id {
                 // Leave the TCP connection from the client open
                 // This effectively transfers the connection to another shard
-                let msg = Msg { value: number_input, fd: tcp_stream.as_raw_fd()};
+                let fd = tcp_stream.into_raw_fd();
+                let msg = Msg { value: number_input, fd};
                 
                 // Try to send the message to the target shard
                 match sender.borrow().try_send_to(idx, msg) {
                     Ok(()) => {
-                        // Successfully sent, forget the TCP stream so it transfers to the other shard
-                        std::mem::forget(tcp_stream);
                         break;
                     }
                     Err(_) => {
                         // Channel is full or other error occurred
                         error!("Shard {shard_id} failed to forward message to shard {idx}: channel full or unavailable. Closing connection.");
+                        
+                        // Reconstruct the stream to properly close it
+                        let mut tcp_stream = unsafe { glommio::net::TcpStream::from_raw_fd(fd) };
                         
                         // Write an error response to the client before closing
                         let error_response = "Server is overwhelmed. Please try again later.\n";
@@ -191,7 +193,7 @@ async fn process_tcp_stream(
                             error!("Failed to write error response: {e}");
                         }
                         
-                        // Close the connection by returning from the loop
+                        // The tcp_stream will be properly dropped here, closing the connection
                         return;
                     }
                 }
